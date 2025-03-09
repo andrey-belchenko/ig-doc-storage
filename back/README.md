@@ -1,3 +1,25 @@
+generated with 
+
+```shell
+quarkus create app ig.ds:back --extension='kotlin,rest-jackson' --gradle
+```
+
+start
+- ./gradlew quarkusDev
+- debug-api (run config)
+
+stop
+- stop proc in terminal (win Ctrl+C)
+
+
+free 5005
+```shell
+./gradlew --stop
+```
+
+
+
+-----------------------
 # back
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
