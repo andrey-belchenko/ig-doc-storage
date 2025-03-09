@@ -5,7 +5,8 @@ pluginManagement {
         mavenLocal()
     }
     plugins {
-        id "${quarkusPluginId}" version "${quarkusPluginVersion}"
+        id(extra["quarkusPluginId"].toString()) version extra["quarkusPluginVersion"].toString()
     }
 }
-rootProject.name='back'
+
+rootProject.name = "back"
