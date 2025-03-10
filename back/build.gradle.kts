@@ -26,11 +26,10 @@ subprojects {
             javaParameters.set(true)
         }
     }
-
     // Add dependencies using the low-level API
     dependencies {
         add("implementation", enforcedPlatform("${property("quarkusPlatformGroupId")}:${property("quarkusPlatformArtifactId")}:${property("quarkusPlatformVersion")}"))
-        add("implementation", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+//        add("implementation", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     }
 
     // Configure allOpen
