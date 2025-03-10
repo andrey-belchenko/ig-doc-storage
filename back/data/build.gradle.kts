@@ -17,7 +17,7 @@ dependencies {
 }
 
 jooq {
-    version.set("3.18.7")
+    version.set("3.20.1")
     edition.set(JooqEdition.OSS)
 
     configurations {
@@ -27,17 +27,17 @@ jooq {
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
                     url = "jdbc:postgresql://localhost:5432/platform"
-                    user = "myuser"
-                    password = "mypassword"
+                    user = "postgres"
+                    password = "1"
                 }
                 generator.apply {
                     database.apply {
                         name = "org.jooq.meta.postgres.PostgresDatabase"
-                        inputSchema = "public"
+                        inputSchema = "attachments"
                     }
                     target.apply {
-                        packageName = "ig.ds.data.model"
-                        directory = "src/main/kotlin/ig/ds/data/generated"
+                        packageName = "ig.ds.data.model.generated"
+                        directory = "src/main/kotlin/ig/ds/data/model/generated"
                     }
                 }
             }
