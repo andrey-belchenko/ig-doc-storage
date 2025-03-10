@@ -11,4 +11,5 @@ pluginManagement {
 
 rootProject.name = "back"
 
+include("data")
 include("api")
