@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="run-and-debug-api" type="CompoundRunConfigurationType">
-    <toRun name="run-api" type="GradleRunConfiguration" />
-    <toRun name="debug-api" type="Remote" />
-    <method v="2" />
-  </configuration>
-</component>
