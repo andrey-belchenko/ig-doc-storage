@@ -1,19 +1,17 @@
+// Root build.gradle.kts
 plugins {
     kotlin("jvm") version "2.0.21" apply false // Apply false to avoid applying it to the root project
 }
 
-
 subprojects {
-    group = "ig.ds"
-    version = "1.0.0-SNAPSHOT"
+    apply(plugin = "org.jetbrains.kotlin.jvm") // Apply Kotlin plugin to all subprojects
 
     repositories {
         mavenCentral()
         mavenLocal()
     }
 
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
+    // Configure Java and Kotlin for all subprojects
     configure<JavaPluginExtension> {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

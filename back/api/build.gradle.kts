@@ -1,4 +1,3 @@
-
 plugins {
     id("org.jetbrains.kotlin.plugin.allopen") version "2.0.21"
     id("io.quarkus")
