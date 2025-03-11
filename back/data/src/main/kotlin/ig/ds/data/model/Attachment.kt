@@ -12,5 +12,6 @@ data class Attachment(
     var createdBy: String? = null,
     var deletedBy: String? = null,
     var file: File,
-    var signatures: List<Signature>? = null
+    var signatures: List<Signature>? = null,
+    var properties: Map<String, Any?>? = null
 )

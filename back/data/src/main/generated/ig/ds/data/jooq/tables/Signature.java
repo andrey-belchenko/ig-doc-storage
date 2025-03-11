@@ -65,7 +65,7 @@ public class Signature extends TableImpl<SignatureRecord> {
     /**
      * The column <code>attachments.signature.created_at</code>.
      */
-    public final TableField<SignatureRecord, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "");
+    public final TableField<SignatureRecord, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
     /**
      * The column <code>attachments.signature.deleted_at</code>.

@@ -15,7 +15,8 @@ CREATE TABLE attachments.attachment (
     deleted_at TIMESTAMPTZ,
     created_by TEXT,
     deleted_by TEXT,
-    file_id TEXT REFERENCES attachments.file(file_id)
+    file_id TEXT REFERENCES attachments.file(file_id),
+    properties JSONB
 );
 
 CREATE TABLE attachments.signature (

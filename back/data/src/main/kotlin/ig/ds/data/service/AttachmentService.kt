@@ -8,10 +8,13 @@ import ig.ds.data.model.User
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.jooq.DSLContext
+import org.jooq.JSONB
 import java.io.InputStream
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 
 
 @ApplicationScoped
@@ -30,7 +33,7 @@ class AttachmentService @Inject constructor(
     }
 
 
-    fun addAttachment(user: User , attachment: Attachment, fileContentStream: InputStream) {
+    fun addAttachment(user: User , attachment: Attachment, fileContentStream: InputStream):String {
         if (attachment.attachmentId == null) {
             attachment.attachmentId = UUID.randomUUID().toString()
         }
@@ -43,6 +46,11 @@ class AttachmentService @Inject constructor(
         if (attachment.createdBy == null) {
             attachment.createdBy = user.userId
         }
+        val objectMapper = jacksonObjectMapper()
+
+
+
+        val propertiesJson = objectMapper.writeValueAsString(attachment.properties)
         dsl.transaction { config ->
             val ctx = config.dsl()
             addFile(ctx, attachment.file, fileContentStream)
@@ -53,11 +61,13 @@ class AttachmentService @Inject constructor(
                 .set(ATTACHMENT.CREATED_AT, attachment.createdAt)
                 .set(ATTACHMENT.CREATED_BY, attachment.createdBy)
                 .set(ATTACHMENT.FILE_ID, attachment.file.fileId)
+                .set(ATTACHMENT.PROPERTIES, JSONB.valueOf(propertiesJson))
                 .execute()
         }
+        return attachment.attachmentId!!
     }
 
-    fun addSignature(user: User ,signature: Signature, fileContentStream: InputStream) {
+    fun addSignature(user: User ,signature: Signature, fileContentStream: InputStream):String {
         if (signature.signatureId == null) {
             signature.signatureId = UUID.randomUUID().toString()
         }
@@ -75,15 +85,17 @@ class AttachmentService @Inject constructor(
             addFile(ctx, signature.file, fileContentStream)
             ctx.insertInto(SIGNATURE)
                 .set(SIGNATURE.ATTACHMENT_ID, signature.attachmentId)
-                .set(SIGNATURE.SIGNATURE_ID, signature.attachmentId)
+                .set(SIGNATURE.SIGNATURE_ID, signature.signatureId)
                 .set(ATTACHMENT.CREATED_AT, signature.createdAt)
                 .set(ATTACHMENT.CREATED_BY, signature.createdBy)
                 .set(ATTACHMENT.FILE_ID, signature.file.fileId)
                 .execute()
         }
+        return signature.signatureId!!
     }
 
     fun getAttachmentsByObjectId(user: User, objectId: String): List<Attachment> {
+        val objectMapper = jacksonObjectMapper()
         val attachments = dsl.select(
             ATTACHMENT.ATTACHMENT_ID,
             ATTACHMENT.OBJECT_ID,
@@ -92,6 +104,7 @@ class AttachmentService @Inject constructor(
             ATTACHMENT.DELETED_AT,
             ATTACHMENT.CREATED_BY,
             ATTACHMENT.DELETED_BY,
+            ATTACHMENT.PROPERTIES,
             FILE.FILE_ID,
             FILE.FILE_NAME,
             FILE.FILE_SIZE
@@ -100,6 +113,10 @@ class AttachmentService @Inject constructor(
             .join(FILE).on(ATTACHMENT.FILE_ID.eq(FILE.FILE_ID))
             .where(ATTACHMENT.OBJECT_ID.eq(objectId))
             .fetch { record ->
+                val propertiesJson = record[ATTACHMENT.PROPERTIES]
+                val propertiesMap = propertiesJson?.let {
+                    objectMapper.readValue<Map<String, Any?>>(it.data())
+                }
                 Attachment(
                     attachmentId = record[ATTACHMENT.ATTACHMENT_ID],
                     objectId = record[ATTACHMENT.OBJECT_ID],
@@ -113,7 +130,8 @@ class AttachmentService @Inject constructor(
                         fileName = record[FILE.FILE_NAME],
                         fileSize = record[FILE.FILE_SIZE]
                     ),
-                    signatures = mutableListOf()
+                    signatures = mutableListOf(),
+                    properties = propertiesMap
                 )
             }
 

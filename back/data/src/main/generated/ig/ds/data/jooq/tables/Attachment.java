@@ -15,11 +15,12 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function8;
+import org.jooq.Function9;
+import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row8;
+import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -70,7 +71,7 @@ public class Attachment extends TableImpl<AttachmentRecord> {
     /**
      * The column <code>attachments.attachment.created_at</code>.
      */
-    public final TableField<AttachmentRecord, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "");
+    public final TableField<AttachmentRecord, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
 
     /**
      * The column <code>attachments.attachment.deleted_at</code>.
@@ -91,6 +92,11 @@ public class Attachment extends TableImpl<AttachmentRecord> {
      * The column <code>attachments.attachment.file_id</code>.
      */
     public final TableField<AttachmentRecord, String> FILE_ID = createField(DSL.name("file_id"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>attachments.attachment.properties</code>.
+     */
+    public final TableField<AttachmentRecord, JSONB> PROPERTIES = createField(DSL.name("properties"), SQLDataType.JSONB, this, "");
 
     private Attachment(Name alias, Table<AttachmentRecord> aliased) {
         this(alias, aliased, null);
@@ -192,18 +198,18 @@ public class Attachment extends TableImpl<AttachmentRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row8 type methods
+    // Row9 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<String, String, String, OffsetDateTime, OffsetDateTime, String, String, String> fieldsRow() {
-        return (Row8) super.fieldsRow();
+    public Row9<String, String, String, OffsetDateTime, OffsetDateTime, String, String, String, JSONB> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function8<? super String, ? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function9<? super String, ? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? super JSONB, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -211,7 +217,7 @@ public class Attachment extends TableImpl<AttachmentRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super String, ? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super String, ? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? super JSONB, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

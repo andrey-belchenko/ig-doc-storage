@@ -16,7 +16,7 @@ class FileService @Inject constructor(
 
 
     fun addFile(fileInfo: File, fileContentStream: InputStream) {
-        s3Service.addFile(fileInfo.fileId, fileContentStream, fileInfo.fileSize)
+        s3Service.addFile(fileInfo.fileId!!, fileContentStream, fileInfo.fileSize)
         dsl.insertInto(FILE)
             .set(FILE.FILE_ID, fileInfo.fileId)
             .set(FILE.FILE_NAME, fileInfo.fileName)

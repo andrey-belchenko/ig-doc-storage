@@ -47,7 +47,7 @@ def collect_files_content(paths, outputFilePath):
 collect_files_content(
     [
         r"C:\Repos\mygithub\ig-doc-storage\back\data\src\main\kotlin\ig\ds\data\model", r"C:\Repos\mygithub\ig-doc-storage\back\data\migrations" ,
-        # r"C:\Repos\mygithub\ig-doc-storage\back\data\src\main\kotlin\ig\ds\data\service\AttachmentService.kt"
+        r"C:\Repos\mygithub\ig-doc-storage\back\data\src\main\kotlin\ig\ds\data\service\AttachmentService.kt"
         ],
     r"C:\Repos\mygithub\ig-doc-storage\utils\output\content.md",
 )
