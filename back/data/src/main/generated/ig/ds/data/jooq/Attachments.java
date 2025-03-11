@@ -5,6 +5,8 @@ package ig.ds.data.jooq;
 
 
 import ig.ds.data.jooq.tables.Attachment;
+import ig.ds.data.jooq.tables.File;
+import ig.ds.data.jooq.tables.Permission;
 import ig.ds.data.jooq.tables.Signature;
 
 import java.util.Arrays;
@@ -34,6 +36,16 @@ public class Attachments extends SchemaImpl {
     public final Attachment ATTACHMENT = Attachment.ATTACHMENT;
 
     /**
+     * The table <code>attachments.file</code>.
+     */
+    public final File FILE = File.FILE;
+
+    /**
+     * The table <code>attachments.permission</code>.
+     */
+    public final Permission PERMISSION = Permission.PERMISSION;
+
+    /**
      * The table <code>attachments.signature</code>.
      */
     public final Signature SIGNATURE = Signature.SIGNATURE;
@@ -55,6 +67,8 @@ public class Attachments extends SchemaImpl {
     public final List<Table<?>> getTables() {
         return Arrays.asList(
             Attachment.ATTACHMENT,
+            File.FILE,
+            Permission.PERMISSION,
             Signature.SIGNATURE
         );
     }

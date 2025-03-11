@@ -5,6 +5,8 @@ package ig.ds.data.jooq;
 
 
 import ig.ds.data.jooq.tables.Attachment;
+import ig.ds.data.jooq.tables.File;
+import ig.ds.data.jooq.tables.Permission;
 import ig.ds.data.jooq.tables.Signature;
 
 
@@ -18,6 +20,16 @@ public class Tables {
      * The table <code>attachments.attachment</code>.
      */
     public static final Attachment ATTACHMENT = Attachment.ATTACHMENT;
+
+    /**
+     * The table <code>attachments.file</code>.
+     */
+    public static final File FILE = File.FILE;
+
+    /**
+     * The table <code>attachments.permission</code>.
+     */
+    public static final Permission PERMISSION = Permission.PERMISSION;
 
     /**
      * The table <code>attachments.signature</code>.

@@ -8,19 +8,18 @@ import ig.ds.data.jooq.Attachments;
 import ig.ds.data.jooq.Keys;
 import ig.ds.data.jooq.tables.records.SignatureRecord;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function4;
-import org.jooq.Identity;
+import org.jooq.Function7;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row4;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -54,24 +53,39 @@ public class Signature extends TableImpl<SignatureRecord> {
     }
 
     /**
-     * The column <code>attachments.signature.id</code>.
+     * The column <code>attachments.signature.signature_id</code>.
      */
-    public final TableField<SignatureRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
-
-    /**
-     * The column <code>attachments.signature.signer_name</code>.
-     */
-    public final TableField<SignatureRecord, String> SIGNER_NAME = createField(DSL.name("signer_name"), SQLDataType.VARCHAR(255).nullable(false), this, "");
-
-    /**
-     * The column <code>attachments.signature.signed_at</code>.
-     */
-    public final TableField<SignatureRecord, LocalDateTime> SIGNED_AT = createField(DSL.name("signed_at"), SQLDataType.LOCALDATETIME(6).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
+    public final TableField<SignatureRecord, String> SIGNATURE_ID = createField(DSL.name("signature_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>attachments.signature.attachment_id</code>.
      */
-    public final TableField<SignatureRecord, Integer> ATTACHMENT_ID = createField(DSL.name("attachment_id"), SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<SignatureRecord, String> ATTACHMENT_ID = createField(DSL.name("attachment_id"), SQLDataType.CLOB.nullable(false), this, "");
+
+    /**
+     * The column <code>attachments.signature.created_at</code>.
+     */
+    public final TableField<SignatureRecord, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "");
+
+    /**
+     * The column <code>attachments.signature.deleted_at</code>.
+     */
+    public final TableField<SignatureRecord, OffsetDateTime> DELETED_AT = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
+
+    /**
+     * The column <code>attachments.signature.created_by</code>.
+     */
+    public final TableField<SignatureRecord, String> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>attachments.signature.deleted_by</code>.
+     */
+    public final TableField<SignatureRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>attachments.signature.file_id</code>.
+     */
+    public final TableField<SignatureRecord, String> FILE_ID = createField(DSL.name("file_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     private Signature(Name alias, Table<SignatureRecord> aliased) {
         this(alias, aliased, null);
@@ -112,21 +126,17 @@ public class Signature extends TableImpl<SignatureRecord> {
     }
 
     @Override
-    public Identity<SignatureRecord, Integer> getIdentity() {
-        return (Identity<SignatureRecord, Integer>) super.getIdentity();
-    }
-
-    @Override
     public UniqueKey<SignatureRecord> getPrimaryKey() {
         return Keys.SIGNATURE_PKEY;
     }
 
     @Override
     public List<ForeignKey<SignatureRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.SIGNATURE__SIGNATURE_ATTACHMENT_ID_FKEY);
+        return Arrays.asList(Keys.SIGNATURE__SIGNATURE_ATTACHMENT_ID_FKEY, Keys.SIGNATURE__SIGNATURE_FILE_ID_FKEY);
     }
 
     private transient Attachment _attachment;
+    private transient File _file;
 
     /**
      * Get the implicit join path to the <code>attachments.attachment</code>
@@ -137,6 +147,16 @@ public class Signature extends TableImpl<SignatureRecord> {
             _attachment = new Attachment(this, Keys.SIGNATURE__SIGNATURE_ATTACHMENT_ID_FKEY);
 
         return _attachment;
+    }
+
+    /**
+     * Get the implicit join path to the <code>attachments.file</code> table.
+     */
+    public File file() {
+        if (_file == null)
+            _file = new File(this, Keys.SIGNATURE__SIGNATURE_FILE_ID_FKEY);
+
+        return _file;
     }
 
     @Override
@@ -179,18 +199,18 @@ public class Signature extends TableImpl<SignatureRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row4 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Integer, String, LocalDateTime, Integer> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row7<String, String, OffsetDateTime, OffsetDateTime, String, String, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function4<? super Integer, ? super String, ? super LocalDateTime, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function7<? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -198,7 +218,7 @@ public class Signature extends TableImpl<SignatureRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super String, ? super LocalDateTime, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function7<? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

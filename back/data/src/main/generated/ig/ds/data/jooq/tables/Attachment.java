@@ -8,17 +8,18 @@ import ig.ds.data.jooq.Attachments;
 import ig.ds.data.jooq.Keys;
 import ig.ds.data.jooq.tables.records.AttachmentRecord;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function3;
-import org.jooq.Identity;
+import org.jooq.Function8;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row3;
+import org.jooq.Row8;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -52,19 +53,44 @@ public class Attachment extends TableImpl<AttachmentRecord> {
     }
 
     /**
-     * The column <code>attachments.attachment.id</code>.
+     * The column <code>attachments.attachment.attachment_id</code>.
      */
-    public final TableField<AttachmentRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<AttachmentRecord, String> ATTACHMENT_ID = createField(DSL.name("attachment_id"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>attachments.attachment.filename</code>.
+     * The column <code>attachments.attachment.object_id</code>.
      */
-    public final TableField<AttachmentRecord, String> FILENAME = createField(DSL.name("filename"), SQLDataType.VARCHAR(255).nullable(false), this, "");
+    public final TableField<AttachmentRecord, String> OBJECT_ID = createField(DSL.name("object_id"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>attachments.attachment.region_id</code>.
+     */
+    public final TableField<AttachmentRecord, String> REGION_ID = createField(DSL.name("region_id"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>attachments.attachment.created_at</code>.
      */
-    public final TableField<AttachmentRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
+    public final TableField<AttachmentRecord, OffsetDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "");
+
+    /**
+     * The column <code>attachments.attachment.deleted_at</code>.
+     */
+    public final TableField<AttachmentRecord, OffsetDateTime> DELETED_AT = createField(DSL.name("deleted_at"), SQLDataType.TIMESTAMPWITHTIMEZONE(6), this, "");
+
+    /**
+     * The column <code>attachments.attachment.created_by</code>.
+     */
+    public final TableField<AttachmentRecord, String> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>attachments.attachment.deleted_by</code>.
+     */
+    public final TableField<AttachmentRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>attachments.attachment.file_id</code>.
+     */
+    public final TableField<AttachmentRecord, String> FILE_ID = createField(DSL.name("file_id"), SQLDataType.CLOB, this, "");
 
     private Attachment(Name alias, Table<AttachmentRecord> aliased) {
         this(alias, aliased, null);
@@ -105,13 +131,25 @@ public class Attachment extends TableImpl<AttachmentRecord> {
     }
 
     @Override
-    public Identity<AttachmentRecord, Integer> getIdentity() {
-        return (Identity<AttachmentRecord, Integer>) super.getIdentity();
+    public UniqueKey<AttachmentRecord> getPrimaryKey() {
+        return Keys.ATTACHMENT_PKEY;
     }
 
     @Override
-    public UniqueKey<AttachmentRecord> getPrimaryKey() {
-        return Keys.ATTACHMENT_PKEY;
+    public List<ForeignKey<AttachmentRecord, ?>> getReferences() {
+        return Arrays.asList(Keys.ATTACHMENT__ATTACHMENT_FILE_ID_FKEY);
+    }
+
+    private transient File _file;
+
+    /**
+     * Get the implicit join path to the <code>attachments.file</code> table.
+     */
+    public File file() {
+        if (_file == null)
+            _file = new File(this, Keys.ATTACHMENT__ATTACHMENT_FILE_ID_FKEY);
+
+        return _file;
     }
 
     @Override
@@ -154,18 +192,18 @@ public class Attachment extends TableImpl<AttachmentRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row3 type methods
+    // Row8 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<Integer, String, LocalDateTime> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row8<String, String, String, OffsetDateTime, OffsetDateTime, String, String, String> fieldsRow() {
+        return (Row8) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function3<? super Integer, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function8<? super String, ? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -173,7 +211,7 @@ public class Attachment extends TableImpl<AttachmentRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function3<? super Integer, ? super String, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super String, ? super String, ? super String, ? super OffsetDateTime, ? super OffsetDateTime, ? super String, ? super String, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
