@@ -16,10 +16,10 @@ import java.nio.file.Paths
 class S3Service @Inject constructor(private val s3Config: S3Config) {
 
     private val s3Client: S3Client = S3Client.builder()
-        .endpointOverride(URI.create(s3Config.url))
+        .endpointOverride(URI.create(s3Config.url()))
         .credentialsProvider(
             StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(s3Config.password, s3Config.user)
+                AwsBasicCredentials.create(s3Config.password(), s3Config.user())
             )
         )
         .region(Region.of("us-east-1"))
@@ -27,7 +27,7 @@ class S3Service @Inject constructor(private val s3Config: S3Config) {
 
     fun putFile(id: String, filePath: String) {
         val putObjectRequest = PutObjectRequest.builder()
-            .bucket(s3Config.bucket)
+            .bucket(s3Config.bucket())
             .key(id)
             .build()
 
@@ -36,7 +36,7 @@ class S3Service @Inject constructor(private val s3Config: S3Config) {
 
     fun getFile(id: String): ByteArray {
         val getObjectRequest = GetObjectRequest.builder()
-            .bucket(s3Config.bucket)
+            .bucket(s3Config.bucket())
             .key(id)
             .build()
 

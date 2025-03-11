@@ -1,14 +1,11 @@
 package ig.ds.data.config
 
-import jakarta.enterprise.context.ApplicationScoped
-import org.eclipse.microprofile.config.inject.ConfigProperties
+import io.smallrye.config.ConfigMapping
 
-
-@ApplicationScoped
-@ConfigProperties(prefix = "s3")
-class S3Config {
-    lateinit var url: String
-    lateinit var user: String
-    lateinit var password: String
-    lateinit var bucket: String
+@ConfigMapping(prefix = "s3")
+interface S3Config {
+    fun url(): String
+    fun user(): String
+    fun password(): String
+    fun bucket(): String
 }
