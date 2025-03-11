@@ -1,47 +1,22 @@
-package ig.ds.data.repository
-
-import ig.ds.data.model.Attachment
+import ig.ds.data.repository.AttachmentRepository
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
-import jakarta.transaction.Transactional
-import org.junit.jupiter.api.Assertions.*
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.ZonedDateTime
-
 @QuarkusTest
 class AttachmentRepositoryTest {
 
     @Inject
-    lateinit var userRepository: AttachmentRepository
+    lateinit var attachmentRepository: AttachmentRepository
 
     @Test
-    @Transactional
-    fun `should persist and retrieve user`() {
-        // Create and persist a new user
-        val user = Attachment().apply {
-            fileName = "Документ 1"
-            size = 2224
-            createdAt = ZonedDateTime.now()
-        }
-        userRepository.persist(Attachment().apply {
-            fileName = "Документ 1"
-            size = 2224
-            createdAt = ZonedDateTime.now()
-        },Attachment().apply {
-            fileName = "Документ 2"
-            size = 224
-            createdAt = ZonedDateTime.now()
-        })
+    fun createAttachment() {
+        val filename = "test-document.pdf"
 
+        val createdAttachment = attachmentRepository.create(filename)
 
-//        // Verify user was persisted and has an ID
-//        assertNotNull(user.id)
-//
-//        // Retrieve user by username
-//        val retrievedUser = userRepository.findByUsername("testuser")
-//
-//        // Verify retrieved user
-//        assertNotNull(retrievedUser)
-//        assertEquals("testuser@example.com", retrievedUser?.email)
+        assertThat(createdAttachment).isNotNull
+        assertThat(createdAttachment.id).isGreaterThan(0)
+        assertThat(createdAttachment.filename).isEqualTo(filename)
     }
 }
