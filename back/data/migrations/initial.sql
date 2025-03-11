@@ -11,7 +11,7 @@ CREATE TABLE attachments.attachment (
     attachment_id TEXT PRIMARY KEY,
     object_id TEXT,
     region_id TEXT,
-    created_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,
     created_by TEXT,
     deleted_by TEXT,
@@ -21,7 +21,7 @@ CREATE TABLE attachments.attachment (
 CREATE TABLE attachments.signature (
     signature_id TEXT PRIMARY KEY,
     attachment_id TEXT NOT NULL REFERENCES attachments.attachment(attachment_id),
-    created_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ,
     created_by TEXT,
     deleted_by TEXT,

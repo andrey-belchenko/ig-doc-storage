@@ -3,11 +3,11 @@ package ig.ds.data.model
 import java.time.OffsetDateTime
 
 data class Signature(
-    val signatureId: String,
-    val attachmentId: String,
-    val createdAt: OffsetDateTime = OffsetDateTime.now(),
-    val deletedAt: OffsetDateTime? = null,
-    val createdBy: String? = null,
-    val deletedBy: String? = null,
-    val fileId: String
+    var signatureId: String?=null,
+    var attachmentId: String,
+    var createdAt: OffsetDateTime? = null,
+    var deletedAt: OffsetDateTime? = null,
+    var createdBy: String? = null,
+    var deletedBy: String? = null,
+    var file: File,
 )

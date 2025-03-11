@@ -11,6 +11,6 @@ class GreetingResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     fun hello():String{
-        return  ""
+        return  "hello"
     }
 }

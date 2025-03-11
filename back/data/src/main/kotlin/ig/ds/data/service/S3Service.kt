@@ -16,24 +16,12 @@ import java.net.URI
 @ApplicationScoped
 class S3Service @Inject constructor(private val s3Config: S3Config) {
 
-//    private val s3Client: S3Client = S3Client.builder()
-//        .endpointOverride(URI.create(s3Config.url()))
-//        .credentialsProvider(
-//            StaticCredentialsProvider.create(
-//                AwsBasicCredentials.create(s3Config.password(), s3Config.user())
-//            )
-//        )
-//        .region(Region.of("us-east-1"))
-//        .build()
-
     private val s3Client: S3Client by lazy {
         val credentials = AwsBasicCredentials.create(s3Config.user(), s3Config.password())
         S3Client.builder()
             .region(Region.of("us-west-2"))
             .endpointOverride(URI(s3Config.url()))
             .credentialsProvider(StaticCredentialsProvider.create(credentials)).build()
-
-
     }
 
     fun addFile(key: String, inputStream: InputStream, contentLength: Long) {
