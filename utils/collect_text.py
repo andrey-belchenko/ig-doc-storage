@@ -1,25 +1,49 @@
-
 import os
 
-def collect_files_content(folderPath, outputFilePath):
+
+def collect_files_content(paths, outputFilePath):
     # Open the output file in write mode
-    with open(outputFilePath, 'w', encoding='utf-8') as outputFile:
-        # Walk through the directory
-        for root, dirs, files in os.walk(folderPath):
-            for file in files:
-                # Get the relative path of the file
-                relative_path = os.path.relpath(os.path.join(root, file), folderPath)
-                
-                # Write the relative path to the output file
-                outputFile.write(f"{relative_path}\n")
-                
+    with open(outputFilePath, "w", encoding="utf-8") as outputFile:
+        # Iterate over each path in the list
+        for path in paths:
+            # Check if the path is a file
+            if os.path.isfile(path):
+                # Write the absolute path to the output file
+                outputFile.write(f"<{os.path.abspath(path)}>\n")
+
                 # Read and write the content of the file
-                with open(os.path.join(root, file), 'r', encoding='utf-8') as inputFile:
+                with open(path, "r", encoding="utf-8") as inputFile:
                     content = inputFile.read()
                     outputFile.write(content)
-                
+
                 # Write the separator
                 outputFile.write("\n----\n")
 
-collect_files_content(r"C:\Repos\mygithub\ig-doc-storage\back\data\src\main\kotlin\ig\ds\data",r"C:\Repos\mygithub\ig-doc-storage\utils\output\content.txt" )
-    
+            # Check if the path is a directory
+            elif os.path.isdir(path):
+                # Walk through the directory
+                for root, dirs, files in os.walk(path):
+                    for file in files:
+                        # Get the absolute path of the file
+                        absolute_path = os.path.join(root, file)
+
+                        # Write the absolute path to the output file
+                        outputFile.write(f"{os.path.abspath(absolute_path)}\n")
+                        outputFile.write("\n```\n")
+                        # Read and write the content of the file
+                        with open(absolute_path, "r", encoding="utf-8") as inputFile:
+                            content = inputFile.read()
+                            outputFile.write(content)
+
+                        # Write the separator
+                        outputFile.write("\n```\n")
+
+            # Handle invalid paths (neither file nor directory)
+            else:
+                print(f"Warning: '{path}' is not a valid file or directory. Skipping.")
+
+
+collect_files_content(
+    [r"C:\Repos\mygithub\ig-doc-storage\back\data\src\main\kotlin\ig\ds\data", r"C:\Repos\mygithub\ig-doc-storage\back\api\migrations" ],
+    r"C:\Repos\mygithub\ig-doc-storage\utils\output\content.md",
+)
