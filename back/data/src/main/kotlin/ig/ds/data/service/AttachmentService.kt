@@ -154,7 +154,7 @@ class AttachmentService @Inject constructor(
 
     fun getAttachments(user: User, queryOptions: QueryOptions): List<Attachment> {
         val objectMapper = jacksonObjectMapper()
-        val attachments = dsl.select(
+        val query = dsl.select(
             ATTACHMENT.ATTACHMENT_ID,
             ATTACHMENT.OBJECT_ID,
             ATTACHMENT.REGION_ID,
@@ -172,41 +172,60 @@ class AttachmentService @Inject constructor(
             .join(PERMISSION).on(ATTACHMENT.REGION_ID.eq(PERMISSION.REGION_ID))
             .and(PERMISSION.USER_ID.eq(user.userId))
             .and(PERMISSION.ACCESS_LEVEL.`in`(AccessLevel.READ, AccessLevel.WRITE))
-            .fetch { record ->
-                val propertiesJson = record[ATTACHMENT.PROPERTIES]
-                val propertiesMap = propertiesJson?.let {
-                    objectMapper.readValue<Map<String, Any?>>(it.data())
-                }
-                Attachment(
-                    attachmentId = record[ATTACHMENT.ATTACHMENT_ID],
-                    objectId = record[ATTACHMENT.OBJECT_ID],
-                    regionId = record[ATTACHMENT.REGION_ID],
-                    createdAt = record[ATTACHMENT.CREATED_AT],
-                    deletedAt = record[ATTACHMENT.DELETED_AT],
-                    createdBy = record[ATTACHMENT.CREATED_BY],
-                    deletedBy = record[ATTACHMENT.DELETED_BY],
-                    file = File(
-                        fileId = record[FILE.FILE_ID],
-                        fileName = record[FILE.FILE_NAME],
-                        fileSize = record[FILE.FILE_SIZE]
-                    ),
-                    signatures = mutableListOf(),
-                    properties = propertiesMap
-                )
+
+        queryOptions.objectId?.let { objectIds ->
+            query.and(ATTACHMENT.OBJECT_ID.`in`(objectIds))
+        }
+
+        queryOptions.regionId?.let { regionIds ->
+            query.and(ATTACHMENT.REGION_ID.`in`(regionIds))
+        }
+
+        if (queryOptions.includeDeletedAttachments != true) {
+            query.and(ATTACHMENT.DELETED_AT.isNull())
+        }
+
+        queryOptions.offset?.let { offset ->
+            query.offset(offset)
+        }
+
+        queryOptions.limit?.let { limit ->
+            query.limit(limit)
+        }
+
+        val attachments = query.fetch { record ->
+            val propertiesJson = record[ATTACHMENT.PROPERTIES]
+            val propertiesMap = propertiesJson?.let {
+                objectMapper.readValue<Map<String, Any?>>(it.data())
             }
+            Attachment(
+                attachmentId = record[ATTACHMENT.ATTACHMENT_ID],
+                objectId = record[ATTACHMENT.OBJECT_ID],
+                regionId = record[ATTACHMENT.REGION_ID],
+                createdAt = record[ATTACHMENT.CREATED_AT],
+                deletedAt = record[ATTACHMENT.DELETED_AT],
+                createdBy = record[ATTACHMENT.CREATED_BY],
+                deletedBy = record[ATTACHMENT.DELETED_BY],
+                file = File(
+                    fileId = record[FILE.FILE_ID],
+                    fileName = record[FILE.FILE_NAME],
+                    fileSize = record[FILE.FILE_SIZE]
+                ),
+                signatures = mutableListOf(),
+                properties = propertiesMap
+            )
+        }
 
         fetchAndAssignSignatures(attachments, queryOptions)
 
         return attachments
     }
 
-
-
     private fun fetchAndAssignSignatures(attachments: List<Attachment>, queryOptions: QueryOptions) {
         val attachmentIds = attachments.mapNotNull { it.attachmentId }
         if (attachmentIds.isEmpty()) return
 
-        val signatures = dsl.select(
+        val signatureQuery = dsl.select(
             SIGNATURE.SIGNATURE_ID,
             SIGNATURE.ATTACHMENT_ID,
             SIGNATURE.CREATED_AT,
@@ -220,21 +239,27 @@ class AttachmentService @Inject constructor(
             .from(SIGNATURE)
             .join(FILE).on(SIGNATURE.FILE_ID.eq(FILE.FILE_ID))
             .where(SIGNATURE.ATTACHMENT_ID.`in`(attachmentIds))
-            .fetch { record ->
-                Signature(
-                    signatureId = record[SIGNATURE.SIGNATURE_ID],
-                    attachmentId = record[SIGNATURE.ATTACHMENT_ID],
-                    createdAt = record[SIGNATURE.CREATED_AT],
-                    deletedAt = record[SIGNATURE.DELETED_AT],
-                    createdBy = record[SIGNATURE.CREATED_BY],
-                    deletedBy = record[SIGNATURE.DELETED_BY],
-                    file = File(
-                        fileId = record[FILE.FILE_ID],
-                        fileName = record[FILE.FILE_NAME],
-                        fileSize = record[FILE.FILE_SIZE]
-                    )
+
+
+        if (queryOptions.includeDeletedSignatures != true) {
+            signatureQuery.and(SIGNATURE.DELETED_AT.isNull())
+        }
+
+        val signatures = signatureQuery.fetch { record ->
+            Signature(
+                signatureId = record[SIGNATURE.SIGNATURE_ID],
+                attachmentId = record[SIGNATURE.ATTACHMENT_ID],
+                createdAt = record[SIGNATURE.CREATED_AT],
+                deletedAt = record[SIGNATURE.DELETED_AT],
+                createdBy = record[SIGNATURE.CREATED_BY],
+                deletedBy = record[SIGNATURE.DELETED_BY],
+                file = File(
+                    fileId = record[FILE.FILE_ID],
+                    fileName = record[FILE.FILE_NAME],
+                    fileSize = record[FILE.FILE_SIZE]
                 )
-            }
+            )
+        }
 
         val signaturesByAttachmentId = signatures.groupBy { it.attachmentId }
 

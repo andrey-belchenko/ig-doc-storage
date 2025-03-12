@@ -1,7 +1,4 @@
-import ig.ds.data.model.Attachment
-import ig.ds.data.model.File
-import ig.ds.data.model.Signature
-import ig.ds.data.model.User
+import ig.ds.data.model.*
 import ig.ds.data.service.AttachmentService
 import io.quarkus.test.junit.QuarkusTest
 import jakarta.inject.Inject
@@ -17,10 +14,10 @@ class AttachmentServiceTest {
     @Test
     fun generateData() {
         val user = User(userId = "tester")
-        listOf("region1", "region2").forEach { regionId ->
+        for (regNum in 1..2) {
             for (objectNum in 1..20) {
                 for (num in 1..3) {
-                    val attachmentId = createAttachment(user, regionId, "object$objectNum", num)
+                    val attachmentId = createAttachment(user, "region$regNum", "object-$regNum-$objectNum", num)
                     if (num > 2) {
                         attachmentService.deleteAttachment(user, attachmentId)
                     }
@@ -112,8 +109,8 @@ class AttachmentServiceTest {
 
     @Test
     fun getAttachments() {
-        val user = User(userId = "tester2")
-        val attachments = attachmentService.getAttachments(user)
+        val user = User(userId = "tester")
+        val attachments = attachmentService.getAttachments(user, QueryOptions(objectId = listOf("object10"), includeDeletedAttachments = true))
         val a = attachments
     }
 }
