@@ -31,7 +31,7 @@ jooq {
 
     configurations {
         create("main") {
-            generateSchemaSourceOnCompilation.set(true)
+            generateSchemaSourceOnCompilation.set(false)
             jooqConfiguration.apply {
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
