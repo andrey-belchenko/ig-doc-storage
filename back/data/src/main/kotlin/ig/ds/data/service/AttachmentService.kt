@@ -20,6 +20,25 @@ class AttachmentService @Inject constructor(
     private val s3Service: S3Service
 ) {
 
+    fun getFileInfo(fileId: String): File {
+        // TODO check access
+        return dsl.selectFrom(FILE)
+            .where(FILE.FILE_ID.eq(fileId))
+            .fetch { record ->
+                File(
+                    fileId = record[FILE.FILE_ID],
+                    fileName = record[FILE.FILE_NAME],
+                    fileSize = record[FILE.FILE_SIZE]
+                )
+
+            }.firstOrNull() ?: throw IllegalArgumentException("File $fileId not found")
+    }
+
+    fun getFileContent(fileId: String):InputStream{
+        // TODO check access
+        return s3Service.getFile(fileId)
+    }
+
     private fun addFile(ctx: DSLContext, fileInfo: File, fileContentStream: InputStream) {
         s3Service.addFile(fileInfo.fileId!!, fileContentStream, fileInfo.fileSize)
         dsl.insertInto(FILE)
@@ -267,4 +286,6 @@ class AttachmentService @Inject constructor(
             attachment.signatures = signaturesByAttachmentId[attachment.attachmentId] ?: emptyList()
         }
     }
+
+
 }
