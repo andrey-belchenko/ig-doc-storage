@@ -40,3 +40,9 @@ CREATE TABLE attachments.permission (
     region_id TEXT,
     access_level attachments.access_level NOT NULL
 );
+
+INSERT INTO attachments.permission (user_id, region_id, access_level)
+VALUES
+    ('tester', 'region1', 'WRITE'),
+    ('tester', 'region2', 'WRITE'),
+    ('tester2', 'region2', 'READ');

@@ -10,11 +10,11 @@ import jakarta.inject.Inject
 import org.jooq.DSLContext
 import org.jooq.JSONB
 import java.io.InputStream
-import java.time.Instant
 import java.time.OffsetDateTime
 import java.util.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import ig.ds.data.jooq.enums.AccessLevel
 
 
 @ApplicationScoped
@@ -32,8 +32,20 @@ class AttachmentService @Inject constructor(
             .execute()
     }
 
+    private fun checkAccess(userId: String, regionId: String, accessLevel: AccessLevel) {
+        if (dsl.selectFrom(PERMISSION)
+                .where(PERMISSION.USER_ID.eq(userId))
+                .and(PERMISSION.REGION_ID.eq(regionId))
+                .and(PERMISSION.ACCESS_LEVEL.eq(accessLevel))
+                .fetch()
+                .isEmpty()
+        )
+            throw SecurityException("User does not have $accessLevel access to region $regionId")
+    }
 
-    fun addAttachment(user: User , attachment: Attachment, fileContentStream: InputStream):String {
+
+    fun addAttachment(user: User, attachment: Attachment, fileContentStream: InputStream): String {
+        checkAccess(user.userId, attachment.regionId, AccessLevel.WRITE)
         if (attachment.attachmentId == null) {
             attachment.attachmentId = UUID.randomUUID().toString()
         }
@@ -47,7 +59,6 @@ class AttachmentService @Inject constructor(
             attachment.createdBy = user.userId
         }
         val objectMapper = jacksonObjectMapper()
-
 
 
         val propertiesJson = objectMapper.writeValueAsString(attachment.properties)
@@ -67,7 +78,12 @@ class AttachmentService @Inject constructor(
         return attachment.attachmentId!!
     }
 
-    fun addSignature(user: User ,signature: Signature, fileContentStream: InputStream):String {
+    fun addSignature(user: User, signature: Signature, fileContentStream: InputStream): String {
+        val attachment = dsl.selectFrom(ATTACHMENT)
+            .where(ATTACHMENT.ATTACHMENT_ID.eq(signature.attachmentId))
+            .fetchOne() ?: throw IllegalArgumentException("Attachment ${signature.attachmentId} not found")
+        checkAccess(user.userId, attachment.regionId, AccessLevel.WRITE)
+
         if (signature.signatureId == null) {
             signature.signatureId = UUID.randomUUID().toString()
         }
@@ -92,6 +108,51 @@ class AttachmentService @Inject constructor(
                 .execute()
         }
         return signature.signatureId!!
+    }
+
+    fun deleteAttachment(user: User, attachmentId: String) {
+        val attachment = dsl.selectFrom(ATTACHMENT)
+            .where(ATTACHMENT.ATTACHMENT_ID.eq(attachmentId))
+            .fetchOne() ?: throw IllegalArgumentException("Attachment $attachmentId not found")
+
+        checkAccess(user.userId, attachment.regionId, AccessLevel.WRITE)
+
+        dsl.transaction { config ->
+            val ctx = config.dsl()
+            ctx.update(ATTACHMENT)
+                .set(ATTACHMENT.DELETED_AT, OffsetDateTime.now())
+                .set(ATTACHMENT.DELETED_BY, user.userId)
+                .where(ATTACHMENT.ATTACHMENT_ID.eq(attachmentId))
+                .execute()
+
+            ctx.update(SIGNATURE)
+                .set(SIGNATURE.DELETED_AT, OffsetDateTime.now())
+                .set(SIGNATURE.DELETED_BY, user.userId)
+                .where(SIGNATURE.ATTACHMENT_ID.eq(attachmentId))
+                .and(SIGNATURE.DELETED_AT.isNull()) // Only update signatures that are not already deleted
+                .execute()
+        }
+    }
+
+    fun deleteSignature(user: User, signatureId: String) {
+        val signature = dsl.selectFrom(SIGNATURE)
+            .where(SIGNATURE.SIGNATURE_ID.eq(signatureId))
+            .fetchOne() ?: throw IllegalArgumentException("Signature $signatureId not found")
+
+        val attachment = dsl.selectFrom(ATTACHMENT)
+            .where(ATTACHMENT.ATTACHMENT_ID.eq(signature.attachmentId))
+            .fetchOne() ?: throw IllegalArgumentException("Attachment ${signature.attachmentId} not found")
+
+        checkAccess(user.userId, attachment.regionId, AccessLevel.WRITE)
+
+        dsl.transaction { config ->
+            val ctx = config.dsl()
+            ctx.update(SIGNATURE)
+                .set(SIGNATURE.DELETED_AT, OffsetDateTime.now())
+                .set(SIGNATURE.DELETED_BY, user.userId)
+                .where(SIGNATURE.SIGNATURE_ID.eq(signatureId))
+                .execute()
+        }
     }
 
     fun getAttachmentsByObjectId(user: User, objectId: String): List<Attachment> {
@@ -139,6 +200,8 @@ class AttachmentService @Inject constructor(
 
         return attachments
     }
+
+
 
     private fun fetchAndAssignSignatures(attachments: List<Attachment>) {
         val attachmentIds = attachments.mapNotNull { it.attachmentId }

@@ -15,6 +15,66 @@ class AttachmentServiceTest {
     lateinit var attachmentService: AttachmentService
 
     @Test
+    fun generateData() {
+        val user = User(userId = "tester")
+        listOf("region1", "region2").forEach { regionId ->
+            for (objectNum in 1..20) {
+                for (num in 1..3) {
+                    val attachmentId = createAttachment(user, regionId, "object$objectNum", num)
+                    if (num > 2) {
+                        attachmentService.deleteAttachment(user, attachmentId)
+                    }
+                }
+            }
+        }
+    }
+
+    fun createAttachment(user: User, regionId: String, objectId: String, number: Int): String {
+        val fileContentBytes = "Test content".toByteArray()
+        val fileSize = fileContentBytes.size.toLong()
+        val info = "$regionId-$objectId-$number"
+        val fileName = "attachment $info.txt"
+        val fileInfo = File(
+            fileName = fileName,
+            fileSize = fileSize
+        )
+        val attachment = Attachment(
+            objectId = objectId,
+            regionId = regionId,
+            file = fileInfo,
+            properties = mapOf("description" to "this id file $fileName", "comments" to listOf("comment1", "comment2"))
+        )
+        val fileContentStream = ByteArrayInputStream(fileContentBytes)
+        val attachmentId = attachmentService.addAttachment(user, attachment, fileContentStream)
+
+        for (i in 1..3) {
+            val signatureId = createSignature(user, attachmentId, info, i)
+            if (i > 2) {
+                attachmentService.deleteSignature(user, signatureId)
+            }
+        }
+        return attachmentId
+    }
+
+    fun createSignature(user: User, attachmentId: String, info: String, number: Int): String {
+        val fileContentBytes = "Test content".toByteArray()
+        val fileSize = fileContentBytes.size.toLong()
+        val fileName = "signature $info-$number.txt"
+        val fileInfo = File(
+            fileName = fileName,
+            fileSize = fileSize
+        )
+        val signature = Signature(
+            attachmentId = attachmentId,
+            file = fileInfo
+        )
+        val fileContentStream = ByteArrayInputStream(fileContentBytes)
+
+        return attachmentService.addSignature(user, signature, fileContentStream)
+    }
+
+
+    @Test
     fun addAttachment() {
         val fileContentBytes = "Test content".toByteArray()
         val fileSize = fileContentBytes.size.toLong()
@@ -27,7 +87,7 @@ class AttachmentServiceTest {
             objectId = "object1",
             regionId = "region1",
             file = fileInfo,
-            properties = mapOf("description" to "test file", "comments" to listOf("comment1","comment2"))
+            properties = mapOf("description" to "test file", "comments" to listOf("comment1", "comment2"))
         )
         val fileContentStream = ByteArrayInputStream(fileContentBytes)
         attachmentService.addAttachment(user, attachment, fileContentStream)
@@ -43,16 +103,17 @@ class AttachmentServiceTest {
         )
         val user = User(userId = "tester")
         val signature = Signature(
-            attachmentId = "7c45df42-c123-488d-942e-85c411f3d7b0",
+            attachmentId = "61cd5833-c044-442e-a152-d2927247bc7c",
             file = fileInfo
         )
         val fileContentStream = ByteArrayInputStream(fileContentBytes)
         attachmentService.addSignature(user, signature, fileContentStream)
     }
+
     @Test
     fun getAttachments() {
         val user = User(userId = "tester")
-        val attachments =   attachmentService.getAttachmentsByObjectId(user, "object1")
-        val a =attachments
+        val attachments = attachmentService.getAttachmentsByObjectId(user, "object1")
+        val a = attachments
     }
 }
