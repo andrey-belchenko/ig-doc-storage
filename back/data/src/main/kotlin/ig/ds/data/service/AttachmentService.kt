@@ -20,7 +20,7 @@ class AttachmentService @Inject constructor(
     private val s3Service: S3Service
 ) {
 
-    fun getFileInfo(fileId: String): File {
+    fun getFileInfo(user: User, fileId: String): File {
         // TODO check access
         return dsl.selectFrom(FILE)
             .where(FILE.FILE_ID.eq(fileId))
@@ -34,7 +34,7 @@ class AttachmentService @Inject constructor(
             }.firstOrNull() ?: throw IllegalArgumentException("File $fileId not found")
     }
 
-    fun getFileContent(fileId: String):InputStream{
+    fun getFileContent(user: User, fileId: String): InputStream {
         // TODO check access
         return s3Service.getFile(fileId)
     }
