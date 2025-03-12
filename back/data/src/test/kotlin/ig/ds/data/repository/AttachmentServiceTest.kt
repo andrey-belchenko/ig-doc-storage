@@ -112,8 +112,8 @@ class AttachmentServiceTest {
 
     @Test
     fun getAttachments() {
-        val user = User(userId = "tester")
-        val attachments = attachmentService.getAttachmentsByObjectId(user, "object1")
+        val user = User(userId = "tester2")
+        val attachments = attachmentService.getAttachments(user)
         val a = attachments
     }
 }

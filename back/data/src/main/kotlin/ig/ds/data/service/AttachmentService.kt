@@ -1,10 +1,6 @@
 package ig.ds.data.service
 
 import ig.ds.data.jooq.Tables.*
-import ig.ds.data.model.Attachment
-import ig.ds.data.model.File
-import ig.ds.data.model.Signature
-import ig.ds.data.model.User
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.inject.Inject
 import org.jooq.DSLContext
@@ -15,6 +11,7 @@ import java.util.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import ig.ds.data.jooq.enums.AccessLevel
+import ig.ds.data.model.*
 
 
 @ApplicationScoped
@@ -155,7 +152,7 @@ class AttachmentService @Inject constructor(
         }
     }
 
-    fun getAttachmentsByObjectId(user: User, objectId: String): List<Attachment> {
+    fun getAttachments(user: User, queryOptions: QueryOptions): List<Attachment> {
         val objectMapper = jacksonObjectMapper()
         val attachments = dsl.select(
             ATTACHMENT.ATTACHMENT_ID,
@@ -172,7 +169,9 @@ class AttachmentService @Inject constructor(
         )
             .from(ATTACHMENT)
             .join(FILE).on(ATTACHMENT.FILE_ID.eq(FILE.FILE_ID))
-            .where(ATTACHMENT.OBJECT_ID.eq(objectId))
+            .join(PERMISSION).on(ATTACHMENT.REGION_ID.eq(PERMISSION.REGION_ID))
+            .and(PERMISSION.USER_ID.eq(user.userId))
+            .and(PERMISSION.ACCESS_LEVEL.`in`(AccessLevel.READ, AccessLevel.WRITE))
             .fetch { record ->
                 val propertiesJson = record[ATTACHMENT.PROPERTIES]
                 val propertiesMap = propertiesJson?.let {
@@ -196,14 +195,14 @@ class AttachmentService @Inject constructor(
                 )
             }
 
-        fetchAndAssignSignatures(attachments)
+        fetchAndAssignSignatures(attachments, queryOptions)
 
         return attachments
     }
 
 
 
-    private fun fetchAndAssignSignatures(attachments: List<Attachment>) {
+    private fun fetchAndAssignSignatures(attachments: List<Attachment>, queryOptions: QueryOptions) {
         val attachmentIds = attachments.mapNotNull { it.attachmentId }
         if (attachmentIds.isEmpty()) return
 
