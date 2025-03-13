@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-hibernate-orm-panache-kotlin")
+//    implementation("io.quarkus:quarkus-hibernate-orm-panache-kotlin")
     implementation("org.jooq:jooq:3.18.7")
     implementation("org.jooq:jooq-kotlin:3.18.7")
     implementation("io.quarkiverse.jooq:quarkus-jooq:2.0.1")

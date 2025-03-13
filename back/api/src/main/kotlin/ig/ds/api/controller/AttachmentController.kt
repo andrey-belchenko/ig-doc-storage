@@ -1,4 +1,4 @@
-package ig.ds.controller
+package ig.ds.api.controller
 
 import ig.ds.data.model.*
 import ig.ds.data.service.AttachmentService
@@ -6,7 +6,13 @@ import jakarta.inject.Inject
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
-import java.io.InputStream
+import org.jboss.resteasy.reactive.PartType
+import org.jboss.resteasy.reactive.RestForm
+
+
+import org.jboss.resteasy.reactive.multipart.FileUpload
+
+
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -15,19 +21,34 @@ class AttachmentController @Inject constructor(
     private val attachmentService: AttachmentService
 ) {
 
+    @POST
+    @Path("/files")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun uploadFile(
+        @RestForm("file") @PartType(MediaType.APPLICATION_OCTET_STREAM) file: FileUpload
+    ): File {
+
+        val fileName = file.fileName()
+        val fileSize = file.size()
+        val fileInfo = attachmentService.addFile(file.fileName(), file.size(), file.uploadedFile().toFile().inputStream())
+        return fileInfo
+
+    }
+
     @GET
     @Path("/files/{fileId}")
     fun getFile(
-        @HeaderParam("userId") userId: String,
+        @HeaderParam("userId") userId: String?,
         @PathParam("fileId") fileId: String
     ): Response {
-        val user = User(userId)
+        val user = User("tester")
         val fileInfo = attachmentService.getFileInfo(user, fileId)
         val fileContent = attachmentService.getFileContent(user, fileId)
 
         return Response.ok(fileContent)
             .header("Content-Disposition", "attachment; filename=\"${fileInfo.fileName}\"")
-            .header("Content-Length", fileInfo.fileSize)
+//            .header("Content-Length", fileInfo.fileSize)
             .build()
     }
 
@@ -35,11 +56,10 @@ class AttachmentController @Inject constructor(
     @Path("/attachments")
     fun addAttachment(
         @HeaderParam("userId") userId: String,
-        attachment: Attachment,
-        fileContentStream: InputStream
+        attachment: Attachment
     ): Response {
         val user = User(userId)
-        val attachmentId = attachmentService.addAttachment(user, attachment, fileContentStream)
+        val attachmentId = attachmentService.addAttachment(user, attachment)
         return Response.ok(attachmentId).build()
     }
 
@@ -48,10 +68,9 @@ class AttachmentController @Inject constructor(
     fun addSignature(
         @HeaderParam("userId") userId: String,
         signature: Signature,
-        fileContentStream: InputStream
     ): Response {
         val user = User(userId)
-        val signatureId = attachmentService.addSignature(user, signature, fileContentStream)
+        val signatureId = attachmentService.addSignature(user, signature)
         return Response.ok(signatureId).build()
     }
 
@@ -77,14 +96,14 @@ class AttachmentController @Inject constructor(
         return Response.ok().build()
     }
 
-    @GET
-    @Path("/attachments")
+    @POST
+    @Path("/attachments/query")
     fun getAttachments(
         @HeaderParam("userId") userId: String,
         queryOptions: QueryOptions
-    ): Response {
+    ): List<Attachment> {
         val user = User(userId)
         val attachments = attachmentService.getAttachments(user, queryOptions)
-        return Response.ok(attachments).build()
+        return attachments
     }
 }
